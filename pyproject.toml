@@ -1,19 +1,21 @@
 [tool.poetry]
-name = "doh"
-version = "0.1.0"
-description = ""
 authors = ["Jerguš Lejko <jergus.lejko@gmail.com>"]
+description = ""
+name = "doh"
 readme = "README.md"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-typer = "^0.9.0"
 docker = "^6.1.3"
 fuzzywuzzy = {extras = ["speedup"], version = "^0.18.0"}
 pydantic = "^2.0.2"
 pyfzf = "^0.3.1"
+python = "^3.11"
+typer = "^0.9.0"
 
+[tool.poetry.scripts]
+doh = "doh.cli:app"
 
 [build-system]
-requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
