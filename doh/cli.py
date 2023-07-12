@@ -7,7 +7,6 @@ import docker
 import subprocess
 
 from docker.models.images import Image
-from fuzzywuzzy import fuzz
 
 
 from pyfzf.pyfzf import FzfPrompt
@@ -141,5 +140,23 @@ def main(tag: Optional[str] = None, height: int = 5):
     execute(resource, action)
 
 
+import distutils
+
+
+def ensure_executable_exists(executable: str, suggestion: str = ""):
+    if not distutils.spawn.find_executable(executable):
+        typer.echo(
+            f"error: could not find executable [{executable}]."
+            + (f" suggestion: {suggestion}" if suggestion else "")
+        )
+        return True
+
+
 if __name__ == "__main__":
-    app()
+    checks = [
+        ensure_executable_exists("fzf", suggestion="brew install fzf"),
+        ensure_executable_exists("dive", suggestion="brew install dive"),
+    ]
+
+    if not any(checks):
+        app()
