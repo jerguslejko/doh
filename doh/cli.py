@@ -114,7 +114,7 @@ def main(tag: Optional[str] = None, height: int = 5):
     matching = search(tag) if tag else get_all()
     resource = fzf_prompt(
         matching,
-        label="select imagez",
+        label="select image",
         height=height,
         tags=[],
     )
