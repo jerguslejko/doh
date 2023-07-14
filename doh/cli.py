@@ -7,9 +7,11 @@ import docker
 import subprocess
 
 from docker.models.images import Image
+from docker.models.containers import Container
 
 
 from pyfzf.pyfzf import FzfPrompt
+from doh.resources.container import ContainerResource
 
 from doh.resources.resource import Resource
 from doh.resources.image import ImageResource
@@ -39,8 +41,17 @@ def get_images() -> list[ImageResource]:
     return matching
 
 
+def get_containers() -> list[ContainerResource]:
+    matching = []
+
+    for container in client.containers.list(all=True):
+        matching.append(ContainerResource(container=container))
+
+    return matching
+
+
 def get_all() -> list[Resource]:
-    return get_images()
+    return get_images() + get_containers()
 
 
 def search(needle: str) -> list[Resource]:
@@ -88,6 +99,9 @@ def get_actions(resource: Resource):
     if isinstance(resource, ImageResource):
         return ["run", "dive"]
 
+    if isinstance(resource, ContainerResource):
+        return ["exec", "logs"]
+
     return []
 
 
@@ -101,9 +115,21 @@ def execute_image_action(image: Image, action: str):
             raise NotImplementedError(f"Unknown action [{action}]")
 
 
+def execute_container_action(container: Container, action: str):
+    match action:
+        case "exec":
+            subprocess.run(["docker", "exec", "-it", container.id, "sh"])
+        case "logs":
+            subprocess.run(["docker", "logs", "-f", container.id])
+        case _:
+            raise NotImplementedError(f"Unknown action [{action}]")
+
+
 def execute(resource: Resource, action: str):
     if isinstance(resource, ImageResource):
         execute_image_action(resource.image, action)
+    elif isinstance(resource, ContainerResource):
+        execute_container_action(resource.container, action)
     else:
         raise NotImplementedError(f"Unknown resource [{resource}]")
 
@@ -113,7 +139,7 @@ def main(tag: Optional[str] = None, height: int = 5):
     matching = search(tag) if tag else get_all()
     resource = fzf_prompt(
         matching,
-        label="select image",
+        label="select resource",
         height=height,
         tags=[],
     )
